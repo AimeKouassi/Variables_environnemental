@@ -1,0 +1,6 @@
+variables;description;unité/format;resolution;periode/version;reference
+cluster;Zone de collecte de données dont les 10 parcelles ont la même signature environnementale;nom du cluster : ex [adzope];NA;NA;Rapport d'identification des clusters projet C4F
+pop_density;Nombre d’habitants au kilomètre carré;hab/km2;1km;2000-2020;https://sedac.ciesin.columbia.edu/data/set/gpw-v4-population-density-rev11
+dist_road;Nombre de kilomètre de route;km/ha;10m;After 2015;https://www.openstreetmap.fr/
+forest_edge;Proximité de la lisière de la forêt;m;30m;After 2015;SEP-REDD+ SODEFOR OIPR BNETD
+alt;Altitude;m;90m;2018;http://srtm.csi.cgiar.org

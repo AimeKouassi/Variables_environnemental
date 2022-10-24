@@ -1,0 +1,294 @@
+---
+title: "var_15clusters"
+author: "Aimé Kouassi"
+date: "10/06/2022"
+output: html_document
+---
+
+```{r setup package, include=FALSE}
+# Package
+library(readr)
+library(tidyverse)
+library(dplyr)
+library(stringr)
+library(rgdal)
+library(tmap)
+library(proj4)
+library(sf)
+library(raster)
+library(terra)
+library(maptools)
+library(sp)
+library(readxl)
+library(MODISTools)
+```
+
+```{r setup data and variables}
+
+## Variables climatiques 
+
+annual_temp <- raster(here::here("data", "bio01_annual mean temperature.tif"))
+temp_sea <- raster(here::here("data", "bio04_temperature seasonality.tif"))
+temp_range <- raster(here::here("data", "bio07_temperature annual range.tif"))
+meanT_WetQ <- raster(here::here("data", "bio08_mean temperature of wettest quarter.tif"))
+annual_prec <- raster(here::here("data", "bio12_annual precipitation.tif"))
+prec_sea <- raster(here::here("data", "bio15_precipitation seasonality.tif"))
+prec_WetQ <- raster(here::here("data", "bio16_precipitation of wettest quarter.tif"))
+prec_DriQ <- raster(here::here("data", "bio17_precipitation of driest quarter.tif"))
+prec_WarQ <- raster(here::here("data", "bio18_precipitation of warmest quarter.tif"))
+prec_ColQ <- raster(here::here("data", "bio19_precipitation of coldest quarter.tif"))
+cwd <- raster(here::here("data", "climat water deficit.tif"))
+
+# wind speed month value
+
+ws1 <- raster(here::here("data", "wc2.1_10m_wind_01.tif"))
+ws2 <- raster(here::here("data", "wc2.1_10m_wind_02.tif"))
+ws3 <- raster(here::here("data", "wc2.1_10m_wind_03.tif"))
+ws4 <- raster(here::here("data", "wc2.1_10m_wind_04.tif"))
+ws5 <- raster(here::here("data", "wc2.1_10m_wind_05.tif"))
+ws6 <- raster(here::here("data", "wc2.1_10m_wind_06.tif"))
+ws7 <- raster(here::here("data", "wc2.1_10m_wind_07.tif"))
+ws8 <- raster(here::here("data", "wc2.1_10m_wind_08.tif"))
+ws9 <- raster(here::here("data", "wc2.1_10m_wind_09.tif"))
+ws10 <- raster(here::here("data", "wc2.1_10m_wind_10.tif"))
+ws11 <- raster(here::here("data", "wc2.1_10m_wind_11.tif"))
+ws12 <- raster(here::here("data", "wc2.1_10m_wind_12.tif"))
+
+# solar radation month value
+
+sr1 <- raster(here::here("data", "wc2.1_10m_srad_01.tif"))
+sr2 <- raster(here::here("data", "wc2.1_10m_srad_02.tif"))
+sr3 <- raster(here::here("data", "wc2.1_10m_srad_03.tif"))
+sr4 <- raster(here::here("data", "wc2.1_10m_srad_04.tif"))
+sr5 <- raster(here::here("data", "wc2.1_10m_srad_05.tif"))
+sr6 <- raster(here::here("data", "wc2.1_10m_srad_06.tif"))
+sr7 <- raster(here::here("data", "wc2.1_10m_srad_07.tif"))
+sr8 <- raster(here::here("data", "wc2.1_10m_srad_08.tif"))
+sr9 <- raster(here::here("data", "wc2.1_10m_srad_09.tif"))
+sr10 <- raster(here::here("data", "wc2.1_10m_srad_10.tif"))
+sr11 <- raster(here::here("data", "wc2.1_10m_srad_11.tif"))
+sr12 <- raster(here::here("data", "wc2.1_10m_srad_12.tif"))
+
+
+## Variables pedologiques 
+
+csoil1<-raster(here::here("data", "csoil (1).tif"))
+csoil2<-raster(here::here("data","csoil (2).tif"))
+csoil3<-raster(here::here("data","csoil (3).tif"))
+csoil4<-raster(here::here("data","csoil (4).tif"))
+csoil5<-raster(here::here("data","csoil (5).tif"))
+csoil6<-raster(here::here("data","csoil (6).tif"))
+csoil7<-raster(here::here("data","csoil (7).tif"))
+csoil8<-raster(here::here("data","csoil (8).tif"))
+csoil9<-raster(here::here("data","csoil (9).tif"))
+csoil10<-raster(here::here("data","csoil (10).tif"))
+csoil11<-raster(here::here("data","csoil (11).tif"))
+csoil12<-raster(here::here("data","csoil (12).tif"))
+csoil13<-raster(here::here("data","csoil (13).tif"))
+csoil14<-raster(here::here("data","csoil (14).tif"))
+csoil15<-raster(here::here("data","csoil (15).tif"))
+
+csoil_mosaic<-raster::merge(csoil1,csoil2,csoil3,csoil4,csoil5,csoil6,csoil7,csoil8,csoil9,csoil10,csoil11,csoil12,csoil13,csoil14,csoil15, tolerance=0.5)
+
+
+deph_rock <- raster(here::here("data", "BDRICM_M_250m_ll.tif"))
+
+clay1<-raster(here::here("data","clay1.tif"))
+clay2<-raster(here::here("data","clay2.tif"))
+clay3<-raster(here::here("data","clay3.tif"))
+clay4<-raster(here::here("data","clay4.tif"))
+clay5<-raster(here::here("data","clay5.tif"))
+clay6<-raster(here::here("data","clay6.tif"))
+clay7<-raster(here::here("data","clay7.tif"))
+clay8<-raster(here::here("data","clay8.tif"))
+clay9<-raster(here::here("data","clay9.tif"))
+clay10<-raster(here::here("data","clay10.tif"))
+clay11<-raster(here::here("data","clay11.tif"))
+clay12<-raster(here::here("data","clay12.tif"))
+clay13<-raster(here::here("data","clay13.tif"))
+clay14<-raster(here::here("data","clay14.tif"))
+clay15<-raster(here::here("data","clay15.tif"))
+clay16<-raster(here::here("data","clay16.tif"))
+clay17<-raster(here::here("data","clay17.tif"))
+clay18<-raster(here::here("data","clay18.tif"))
+clay19<-raster(here::here("data","clay19.tif"))
+
+clay_mosaic<-raster::merge(clay1,clay2,clay3,clay4,clay5,clay6,clay7,clay8,clay9,clay10,clay11,clay12,clay13,clay14,clay15,clay16,clay17,clay18,clay19, tolerance=0.5)
+
+silt1<-raster(here::here("data", "silt1.tif"))
+silt2<-raster(here::here("data","silt2.tif"))
+silt3<-raster(here::here("data","silt3.tif"))
+silt4<-raster(here::here("data","silt4.tif"))
+silt5<-raster(here::here("data","silt5.tif"))
+silt6<-raster(here::here("data","silt6.tif"))
+silt7<-raster(here::here("data","silt7.tif"))
+silt8<-raster(here::here("data","silt8.tif"))
+silt9<-raster(here::here("data","silt9.tif"))
+silt10<-raster(here::here("data","silt10.tif"))
+silt11<-raster(here::here("data","silt11.tif"))
+silt12<-raster(here::here("data","silt12.tif"))
+silt13<-raster(here::here("data","silt13.tif"))
+silt14<-raster(here::here("data","silt14.tif"))
+silt15<-raster(here::here("data","silt15.tif"))
+silt16<-raster(here::here("data","silt16.tif"))
+silt17<-raster(here::here("data","silt17.tif"))
+silt18<-raster(here::here("data","silt18.tif"))
+
+silt_mosaic<-raster::merge(silt1,silt2,silt3,silt4,silt5,silt6,silt7,silt8,silt9,silt10,silt11,silt12,silt13,silt14,silt15,silt16,silt17,silt18, tolerance=0.5)
+
+coarse1<-raster(here::here("data","coarse1.tif"))
+coarse2<-raster(here::here("data","coarse2.tif"))
+coarse3<-raster(here::here("data","coarse3.tif"))
+coarse4<-raster(here::here("data","coarse4.tif"))
+coarse5<-raster(here::here("data","coarse5.tif"))
+coarse6<-raster(here::here("data","coarse6.tif"))
+coarse7<-raster(here::here("data","coarse7.tif"))
+coarse8<-raster(here::here("data","coarse8.tif"))
+coarse9<-raster(here::here("data","coarse9.tif"))
+coarse10<-raster(here::here("data","coarse10.tif"))
+coarse11<-raster(here::here("data","coarse11.tif"))
+coarse12<-raster(here::here("data","coarse12.tif"))
+coarse13<-raster(here::here("data","coarse13.tif"))
+coarse14<-raster(here::here("data","coarse14.tif"))
+coarse15<-raster(here::here("data","coarse15.tif"))
+coarse16<-raster(here::here("data","coarse16.tif"))
+coarse17<-raster(here::here("data","coarse17.tif"))
+coarse18<-raster(here::here("data","coarse18.tif"))
+coarse19<-raster(here::here("data","coarse19.tif"))
+coarse20<-raster(here::here("data","coarse20.tif"))
+coarse21<-raster(here::here("data","coarse21.tif"))
+coarse22<-raster(here::here("data","coarse22.tif"))
+coarse23<-raster(here::here("data","coarse23.tif"))
+
+coarse_mosaic<-raster::merge(coarse1,coarse2,coarse3,coarse4,coarse5,coarse6,coarse7,coarse8,coarse9,coarse10,coarse11,coarse12,coarse13,coarse14,coarse15,coarse16,coarse17,coarse18,coarse19,coarse20,coarse21,coarse22,coarse23, tolerance=0.5)
+
+## Variables anthropiques
+
+pop_density <-raster(here::here("data", "population_density__2020.tif"))
+forest_edge <-raster(here::here("data", "forest_edge.tif"))
+road_edge <-raster(here::here("data", "Dist_roads.tif"))
+
+alt1<-raster(here::here("data", "srtm_35_11.tif"))
+alt2<-raster(here::here("data", "srtm_36_11.tif"))
+alt_mosaic<-raster::merge(alt1,alt2, tolerance=0.5)
+#plot(alt_mosaic)
+#points(coord_plots$lon, coord_plots$lat)
+
+#writeRaster(ext, r, "route.tif")
+```
+
+
+```{r setup, include=FALSE, value extraction}
+
+# Get or set the coordinate reference system (CRS) of the Rasters object : crs1<- projection(bio01)
+
+## Coordonnées en csv
+
+coord_plots=read.csv2(here::here("data", "coord_150plot.csv")) 
+
+coord_plots <- coord_plots %>% 
+     mutate_at(c(2:4), as.numeric)
+
+#create SpatialPoint and projection
+#create SpatialPoint by Convert foreign object to an sf object
+
+sp <- st_as_sf(x = coord_plots, coords = c("lon", "lat"), crs = "+proj=longlat +datum=WGS84",
+               remove = FALSE) 
+# st : numeric vector, matrix or list
+# sf : extends data.frame-like objects with a simple feature list column
+
+# get UTM coord : Transform or convert coordinates of simple feature (geomtry (x,y))
+sp <- st_transform(sp,32630)   
+
+# sp1 <- as(sp, "Spatial") # SpatialPointsDataFrame
+# sp1 <- as.data.frame(sp1)
+
+# extract value
+# projectRaster(DEM,crs = "+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0")
+
+# bioclim extract res = 1km
+annual_temp <- extract(annual_temp,sp, method='simple', df=FALSE)
+temp_sea <- extract(temp_sea,sp, method='simple', df=FALSE)
+temp_range <- extract(temp_range,sp, method='simple', df=FALSE)
+meanT_WetQ <- extract(meanT_WetQ,sp, method='simple', df=FALSE)
+# meanT_DriQ <- extract(meanT_DriQ,sp, method='simple', df=FALSE)
+annual_prec <- extract(annual_prec,sp, method='simple', df=FALSE)
+# prec_WetM <- extract(prec_WetM,sp, method='simple', df=FALSE)
+# prec_DriM <- extract(prec_DriM,sp, method='simple', df=FALSE)
+prec_sea <- extract(prec_sea,sp, method='simple', df=FALSE)
+prec_WetQ <- extract(prec_WetQ,sp, method='simple', df=FALSE)
+prec_DriQ <- extract(prec_DriQ,sp, method='simple', df=FALSE)
+prec_WarQ <- extract(prec_WarQ,sp, method='simple', df=FALSE)
+prec_ColQ <- extract(prec_ColQ,sp, method='simple', df=FALSE)
+cwd <- extract(cwd,sp, method='simple', df=FALSE)
+
+# wind speed extract res = 1km
+ws1 <- extract(ws1,sp, method='simple', df=FALSE)
+ws2 <- extract(ws2,sp, method='simple', df=FALSE)
+ws3 <- extract(ws3,sp, method='simple', df=FALSE)
+ws4 <- extract(ws4,sp, method='simple', df=FALSE)
+ws5 <- extract(ws5,sp, method='simple', df=FALSE)
+ws6 <- extract(ws6,sp, method='simple', df=FALSE)
+ws7 <- extract(ws7,sp, method='simple', df=FALSE)
+ws8 <- extract(ws8,sp, method='simple', df=FALSE)
+ws9 <- extract(ws9,sp, method='simple', df=FALSE)
+ws10 <- extract(ws10,sp, method='simple',df=FALSE)
+ws11 <- extract(ws11,sp, method='simple',df=FALSE)
+ws12 <- extract(ws12,sp, method='simple',df=FALSE)
+
+ws_by_month <- data.frame(ws1, ws2, ws3, ws4, ws5, ws6, ws7, ws8, ws9, ws10, ws11, ws12)
+ws_mean<-rowMeans(ws_by_month)
+# choix_sites_ws<-bind_cols(choix_sites, ws_by_month)
+
+# mean or max ???
+# ws_mean=mean(ws_by_month, na.rm = TRUE) # annual mean wind speed in our sites
+
+# ws_mean=mean(ws_mean_month) # annual mean wind speed 
+# ws_max=max(ws_mean_month) # month with max wind speed
+# ws_min=min(ws_mean_month) # month with min wind speed
+
+# solar radiation extract res = 1km
+
+sr1 <- extract(sr1,sp, method='simple', df=FALSE)
+sr2 <- extract(sr2,sp, method='simple', df=FALSE)
+sr3 <- extract(sr3,sp, method='simple', df=FALSE)
+sr4 <- extract(sr4,sp, method='simple', df=FALSE)
+sr5 <- extract(sr5,sp, method='simple', df=FALSE)
+sr6 <- extract(sr6,sp, method='simple', df=FALSE)
+sr7 <- extract(sr7,sp, method='simple', df=FALSE)
+sr8 <- extract(sr8,sp, method='simple', df=FALSE)
+sr9 <- extract(sr9,sp, method='simple', df=FALSE)
+sr10 <- extract(sr10,sp, method='simple',df=FALSE)
+sr11 <- extract(sr11,sp, method='simple',df=FALSE)
+sr12 <- extract(sr12,sp, method='simple',df=FALSE)
+
+sr_by_month <- data.frame(sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, sr11, sr12)
+sr_mean<-rowMeans(sr_by_month) # mean or max ??? 
+
+# soils extract (res = 250 m)
+
+deph_rock<- extract(deph_rock,sp, method='simple', df=FALSE)
+clay <- extract(clay_mosaic,sp, method='simple', df=FALSE)
+csoil <- extract(csoil_mosaic,sp, method='simple', df=FALSE)
+silt <- extract(silt_mosaic,sp, method='simple', df=FALSE)
+coarse <- extract(coarse_mosaic,sp, method='simple', df=FALSE)
+
+
+# antropics var extract
+road_edge <- extract(road_edge,sp, method='simple', df=FALSE)
+forest_edge <- extract(forest_edge,sp, method='simple', df=FALSE)
+pop_density <- extract(pop_density,sp, method='simple', df=FALSE)
+alt <- extract(alt_mosaic,sp, method='simple', df=FALSE)
+
+```
+
+
+```{r database}
+# New database with coord and var_clim values
+plot_varclim <- data.frame(coord_plots,annual_temp/10,temp_sea/10,temp_range/10,meanT_WetQ/10,annual_prec,prec_sea,prec_WetQ,prec_DriQ,prec_WarQ,prec_ColQ,cwd, sr_mean,ws_mean)
+
+plot_varpedo <- data.frame(coord_plots,csoil,clay, silt, coarse, deph_rock)
+                  
+plot_varanthro <- data.frame(coord_plots,pop_density,road_edge, forest_edge, alt)
+
+```
